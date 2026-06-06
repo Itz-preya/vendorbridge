@@ -1,0 +1,205 @@
+// VendorBridge ERP - Prisma Schema (SQLite compatible)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+// Roles: ADMIN | PROCUREMENT_OFFICER | VENDOR | MANAGER
+// VendorCategory: IT_SERVICES | MANUFACTURING | CONSULTING | LOGISTICS | RAW_MATERIALS | OFFICE_SUPPLIES
+// VendorStatus: ACTIVE | INACTIVE | BLACKLISTED
+// RFQStatus: DRAFT | SENT | CLOSED | CANCELLED
+// QuotationStatus: SUBMITTED | UNDER_REVIEW | ACCEPTED | REJECTED
+// ApprovalStatus: PENDING | APPROVED | REJECTED
+// PurchaseOrderStatus: DRAFT | ISSUED | ACKNOWLEDGED | COMPLETED | CANCELLED
+// InvoiceStatus: DRAFT | SENT | PAID | OVERDUE | CANCELLED
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("VENDOR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rfqs          RFQ[]
+  approvals     Approval[]
+  activityLogs  ActivityLog[]
+  notifications Notification[]
+  vendor        Vendor?
+
+  @@map("users")
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String
+  company   String
+  email     String
+  phone     String
+  gstNumber String
+  category  String   @default("IT_SERVICES")
+  status    String   @default("ACTIVE")
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  rfqVendors     RFQVendor[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+  invoices       Invoice[]
+
+  @@map("vendors")
+}
+
+model RFQ {
+  id          String   @id @default(uuid())
+  rfqNumber   String   @unique
+  title       String
+  description String
+  items       String   // JSON string
+  deadline    DateTime
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  rfqVendors RFQVendor[]
+  quotations Quotation[]
+
+  @@map("rfqs")
+}
+
+model RFQVendor {
+  id       String @id @default(uuid())
+  rfqId    String
+  vendorId String
+
+  rfq    RFQ    @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([rfqId, vendorId])
+  @@map("rfq_vendors")
+}
+
+model Quotation {
+  id               String   @id @default(uuid())
+  quotationNumber  String   @unique
+  items            String   // JSON string
+  totalAmount      Float
+  deliveryTimeline String
+  notes            String?
+  status           String   @default("SUBMITTED")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  rfqId    String
+  rfq      RFQ    @relation(fields: [rfqId], references: [id])
+  vendorId String
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+
+  approvals     Approval[]
+  purchaseOrder PurchaseOrder?
+
+  @@map("quotations")
+}
+
+model Approval {
+  id        String   @id @default(uuid())
+  status    String   @default("PENDING")
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  approverId  String
+  approver    User      @relation(fields: [approverId], references: [id])
+
+  @@map("approvals")
+}
+
+model PurchaseOrder {
+  id          String   @id @default(uuid())
+  poNumber    String   @unique
+  items       String   // JSON string
+  subtotal    Float
+  taxRate     Float
+  taxAmount   Float
+  totalAmount Float
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quotationId String    @unique
+  quotation   Quotation @relation(fields: [quotationId], references: [id])
+  vendorId    String
+  vendor      Vendor    @relation(fields: [vendorId], references: [id])
+
+  invoice Invoice?
+
+  @@map("purchase_orders")
+}
+
+model Invoice {
+  id              String    @id @default(uuid())
+  invoiceNumber   String    @unique
+  items           String    // JSON string
+  subtotal        Float
+  cgst            Float
+  sgst            Float
+  igst            Float
+  totalTax        Float
+  totalAmount     Float
+  status          String    @default("DRAFT")
+  dueDate         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  purchaseOrderId String        @unique
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  vendorId        String
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+
+  @@map("invoices")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String
+  details    String?
+  createdAt  DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  type      String
+  entityId  String?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
