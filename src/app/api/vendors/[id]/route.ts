@@ -46,8 +46,17 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    
+    // Manually delete related records to bypass missing SQLite Cascade
+    await prisma.invoice.deleteMany({ where: { vendorId: id } });
+    await prisma.purchaseOrder.deleteMany({ where: { vendorId: id } });
+    const quotes = await prisma.quotation.findMany({ where: { vendorId: id } });
+    await prisma.approval.deleteMany({ where: { quotationId: { in: quotes.map(q => q.id) } } });
+    await prisma.quotation.deleteMany({ where: { vendorId: id } });
+    await prisma.rFQVendor.deleteMany({ where: { vendorId: id } });
+
     const vendor = await prisma.vendor.delete({ where: { id } });
     await prisma.activityLog.create({ data: { userId: user.userId, action: 'VENDOR_DELETED', entityType: 'Vendor', entityId: id, details: `Deleted vendor: ${vendor.company}` } });
     return NextResponse.json({ success: true });
-  } catch { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }
+  } catch (e: any) { return NextResponse.json({ error: e.message || 'Failed' }, { status: 500 }); }
 }

@@ -16,9 +16,10 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
-    const count = await prisma.purchaseOrder.count();
-    const poNumber = `PO-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const poNumber = `PO-${new Date().getFullYear()}-${uniqueSuffix}`;
     const subtotal = parseFloat(body.subtotal);
     const taxAmount = subtotal * 0.18;
     const po = await prisma.purchaseOrder.create({

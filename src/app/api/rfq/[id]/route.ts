@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
     const rfq = await prisma.rFQ.update({ where: { id }, data: { status: body.status } });
     await prisma.activityLog.create({ data: { userId: user.userId, action: 'RFQ_STATUS_CHANGED', entityType: 'RFQ', entityId: id, details: `${rfq.rfqNumber} status → ${body.status}` } });
@@ -35,6 +36,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     await prisma.rFQ.update({ where: { id }, data: { status: 'CANCELLED' } });
     return NextResponse.json({ success: true });
   } catch { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }

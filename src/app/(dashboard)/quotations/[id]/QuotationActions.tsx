@@ -9,8 +9,13 @@ export default function QuotationActions({ quotationId }: { quotationId: string 
 
   const handleAction = async (status: 'ACCEPTED'|'REJECTED') => {
     setLoading(true); setAction(status);
-    await fetch(`/api/quotations/${quotationId}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
-    router.refresh();
+    const res = await fetch(`/api/quotations/${quotationId}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Error: ' + data.error);
+    } else {
+      router.refresh();
+    }
     setLoading(false); setAction(null);
   };
 

@@ -21,12 +21,13 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'VENDOR') return NextResponse.json({ error: 'Forbidden: Only Vendors can submit quotations' }, { status: 403 });
     const body = await req.json();
     if (!body.rfqId || !body.vendorId || !body.items || !body.totalAmount || !body.deliveryTimeline)
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
 
-    const count = await prisma.quotation.count();
-    const quotationNumber = `QTN-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const quotationNumber = `QTN-${new Date().getFullYear()}-${uniqueSuffix}`;
 
     const quotation = await prisma.quotation.create({
       data: {

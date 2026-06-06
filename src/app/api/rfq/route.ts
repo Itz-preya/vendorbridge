@@ -20,12 +20,13 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
     const result = rfqSchema.safeParse({ ...body, items: typeof body.items === 'string' ? JSON.parse(body.items) : body.items });
     if (!result.success) return NextResponse.json({ error: 'Validation failed', details: result.error.flatten().fieldErrors }, { status: 400 });
 
-    const count = await prisma.rFQ.count();
-    const rfqNumber = `RFQ-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const rfqNumber = `RFQ-${new Date().getFullYear()}-${uniqueSuffix}`;
 
     const rfq = await prisma.rFQ.create({
       data: {

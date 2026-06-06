@@ -11,8 +11,13 @@ export default function POActions({ po }: { po: POData }) {
 
   const updateStatus = async (status: string) => {
     setLoading(true);
-    await fetch(`/api/purchase-orders/${po.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    router.refresh();
+    const res = await fetch(`/api/purchase-orders/${po.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Error: ' + data.error);
+    } else {
+      router.refresh();
+    }
     setLoading(false);
   };
 
@@ -24,8 +29,14 @@ export default function POActions({ po }: { po: POData }) {
       body: JSON.stringify({ purchaseOrderId: po.id, vendorId: po.vendorId, items: po.items, subtotal: po.subtotal }),
     });
     const data = await res.json();
-    if (data.invoice) router.push(`/invoices/${data.invoice.id}`);
-    else setLoading(false);
+    if (!res.ok) {
+      alert('Error: ' + data.error);
+      setLoading(false);
+    } else if (data.invoice) {
+      router.push(`/invoices/${data.invoice.id}`);
+    } else {
+      setLoading(false);
+    }
   };
 
   return (

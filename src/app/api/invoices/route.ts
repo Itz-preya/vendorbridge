@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = await req.json();
-    const count = await prisma.invoice.count();
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${uniqueSuffix}`;
     const subtotal = parseFloat(body.subtotal);
     // Same-state GST: CGST 9% + SGST 9%; inter-state: IGST 18%
     const cgst = subtotal * 0.09;

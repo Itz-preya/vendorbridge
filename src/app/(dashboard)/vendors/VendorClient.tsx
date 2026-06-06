@@ -71,8 +71,13 @@ export default function VendorClient({ initial, userRole }: { initial: Vendor[],
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this vendor? This cannot be undone.')) return;
     setDeleteId(id);
-    await fetch(`/api/vendors/${id}`, { method: 'DELETE' });
-    setDeleteId(null); refresh();
+    const res = await fetch(`/api/vendors/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Error: ' + data.error);
+    }
+    setDeleteId(null);
+    refresh();
   };
 
   return (

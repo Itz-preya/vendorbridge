@@ -7,6 +7,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'MANAGER') return NextResponse.json({ error: 'Forbidden: Only Managers can approve' }, { status: 403 });
     const body = await req.json();
 
     if (!body.status || !['APPROVED', 'REJECTED'].includes(body.status))
@@ -21,8 +22,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (body.status === 'APPROVED') {
       // Auto-create Purchase Order
       const q = approval.quotation;
-      const count = await prisma.purchaseOrder.count();
-      const poNumber = `PO-${new Date().getFullYear()}-${String(count + 1).padStart(3, '0')}`;
+      const uniqueSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const poNumber = `PO-${new Date().getFullYear()}-${uniqueSuffix}`;
       const subtotal = q.totalAmount;
       const taxAmount = subtotal * 0.18;
       const po = await prisma.purchaseOrder.create({

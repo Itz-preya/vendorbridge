@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'ADMIN' && user.role !== 'PROCUREMENT_OFFICER') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const body = await req.json();
     const managers = await prisma.user.findMany({ where: { role: { in: ['MANAGER', 'ADMIN'] } }, take: 1 });
     if (managers.length === 0) return NextResponse.json({ error: 'No manager available' }, { status: 400 });

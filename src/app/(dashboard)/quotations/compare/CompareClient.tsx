@@ -17,8 +17,14 @@ export default function CompareClient({ rfq, quotations }: { rfq: RFQ; quotation
   const handleSelect = async (quotationId: string) => {
     if (!confirm('Select this quotation as the winner? All others will be rejected and sent for approval.')) return;
     setSelecting(quotationId);
-    await fetch(`/api/quotations/${quotationId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'ACCEPTED' }) });
-    router.push('/approvals');
+    const res = await fetch(`/api/quotations/${quotationId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'ACCEPTED' }) });
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Error: ' + data.error);
+      setSelecting(null);
+    } else {
+      router.push('/approvals');
+    }
   };
 
   const allItems = [...new Set(quotations.flatMap(q => q.parsedItems.map(it => it.name)))];
