@@ -47,8 +47,13 @@ export default function InvoiceTemplate({ invoice }: { invoice: Invoice }) {
 
   const handleMarkPaid = async () => {
     setPaying(true);
-    await fetch(`/api/invoices/${invoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'PAID' }) });
-    router.refresh();
+    const res = await fetch(`/api/invoices/${invoice.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'PAID' }) });
+    if (!res.ok) {
+      const data = await res.json();
+      alert('Error: ' + data.error);
+    } else {
+      router.refresh();
+    }
     setPaying(false);
   };
 

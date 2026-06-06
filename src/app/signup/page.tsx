@@ -7,7 +7,6 @@ const ROLES = [
   { value: 'PROCUREMENT_OFFICER', label: 'Procurement Officer' },
   { value: 'MANAGER', label: 'Manager / Approver' },
   { value: 'VENDOR', label: 'Vendor' },
-  { value: 'ADMIN', label: 'Admin' },
 ];
 
 export default function SignupPage() {

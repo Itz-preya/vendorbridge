@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { signToken } from '@/lib/auth';
 import { signupSchema } from '@/lib/validations';
 import bcrypt from 'bcryptjs';
@@ -18,6 +18,14 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, password, role } = result.data;
+
+    // Prevent self-assigning ADMIN role via signup
+    if (role === 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin accounts cannot be created via signup' },
+        { status: 403 }
+      );
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({

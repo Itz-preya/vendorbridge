@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const approvals = await prisma.approval.findMany({
       include: { quotation: { include: { rfq: { select: { rfqNumber: true, title: true } }, vendor: { select: { company: true } } } }, approver: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },

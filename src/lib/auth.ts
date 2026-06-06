@@ -1,9 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'vendorbridge-erp-secret-key-2025-hackathon'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export interface UserPayload {
   userId: string;

@@ -5,6 +5,8 @@ import { rfqSchema } from '@/lib/validations';
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status') || '';
     const rfqs = await prisma.rFQ.findMany({

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'vendorbridge-erp-secret-key-2025-hackathon'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const PUBLIC_PATHS = ['/login', '/signup', '/api/auth/login', '/api/auth/signup', '/api/auth/logout'];
 

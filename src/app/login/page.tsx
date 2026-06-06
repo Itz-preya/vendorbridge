@@ -55,7 +55,8 @@ export default function LoginPage() {
           <strong>Demo Accounts:</strong><br />
           admin@vendorbridge.com · password123<br />
           officer@vendorbridge.com · password123<br />
-          vendor@vendorbridge.com · manager@vendorbridge.com
+          vendor@vendorbridge.com · password123<br />
+          manager@vendorbridge.com · password123
         </div>
 
         {serverError && (

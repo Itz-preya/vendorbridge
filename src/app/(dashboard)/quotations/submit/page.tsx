@@ -5,7 +5,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 interface RFQ { id: string; rfqNumber: string; title: string; items: string; }
 interface Vendor { id: string; company: string; }
 
-export default function SubmitQuotationPage() {
+import { Suspense } from 'react';
+
+function SubmitQuotationForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const rfqId = searchParams.get('rfqId') || '';
@@ -159,5 +161,13 @@ export default function SubmitQuotationPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function SubmitQuotationPage() {
+  return (
+    <Suspense fallback={<div>Loading form...</div>}>
+      <SubmitQuotationForm />
+    </Suspense>
   );
 }

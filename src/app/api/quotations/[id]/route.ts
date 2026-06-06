@@ -3,10 +3,16 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const q = await prisma.quotation.findUnique({ where: { id }, include: { rfq: true, vendor: true, approvals: { include: { approver: { select: { name: true } } } } } });
-  if (!q) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json({ quotation: q });
+  try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { id } = await params;
+    const q = await prisma.quotation.findUnique({ where: { id }, include: { rfq: true, vendor: true, approvals: { include: { approver: { select: { name: true } } } } } });
+    if (!q) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ quotation: q });
+  } catch (e) {
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
