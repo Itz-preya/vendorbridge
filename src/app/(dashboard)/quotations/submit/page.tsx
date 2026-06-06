@@ -1,11 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface RFQ { id: string; rfqNumber: string; title: string; items: string; }
 interface Vendor { id: string; company: string; }
-
-import { Suspense } from 'react';
 
 function SubmitQuotationForm() {
   const searchParams = useSearchParams();
@@ -14,12 +12,17 @@ function SubmitQuotationForm() {
 
   const [rfqs, setRfqs] = useState<RFQ[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [selectedRfq, setSelectedRfq] = useState<RFQ | null>(null);
   const [form, setForm] = useState({ rfqId, vendorId: '', deliveryTimeline: '', notes: '' });
   const [items, setItems] = useState<{name:string; quantity:number; unitPrice:number; totalPrice:number}[]>([]);
   const [saving, setSaving] = useState(false);
   const [serverErr, setServerErr] = useState('');
   const [errors, setErrors] = useState<Record<string,string>>({});
+
+  const loadRfqItems = useCallback((rfq: RFQ) => {
+    const parsed = JSON.parse(rfq.items);
+    setItems(parsed.map((it: {name:string; quantity:number}) => ({ name: it.name, quantity: it.quantity, unitPrice: 0, totalPrice: 0 })));
+    setForm(f => ({ ...f, rfqId: rfq.id }));
+  }, []);
 
   useEffect(() => {
     fetch('/api/rfq?status=SENT').then(r => r.json()).then(d => {
@@ -30,14 +33,7 @@ function SubmitQuotationForm() {
       }
     });
     fetch('/api/vendors?status=ACTIVE').then(r => r.json()).then(d => setVendors(d.vendors || []));
-  }, [rfqId]);
-
-  const loadRfqItems = (rfq: RFQ) => {
-    setSelectedRfq(rfq);
-    const parsed = JSON.parse(rfq.items);
-    setItems(parsed.map((it: {name:string; quantity:number}) => ({ name: it.name, quantity: it.quantity, unitPrice: 0, totalPrice: 0 })));
-    setForm(f => ({ ...f, rfqId: rfq.id }));
-  };
+  }, [loadRfqItems, rfqId]);
 
   const updatePrice = (i: number, unitPrice: number) => {
     setItems(prev => prev.map((it, idx) => idx === i ? { ...it, unitPrice, totalPrice: unitPrice * it.quantity } : it));

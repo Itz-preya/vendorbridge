@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface Vendor { id: string; name: string; company: string; email: string; phone: string; gstNumber: string; category: string; status: string; address: string; }
@@ -36,7 +35,22 @@ export default function VendorClient({ initial, userRole }: { initial: Vendor[],
     setVendors(data.vendors || []);
   }, [search, catFilter, statusFilter]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (catFilter) params.set('category', catFilter);
+    if (statusFilter) params.set('status', statusFilter);
+
+    fetch('/api/vendors?' + params, { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => setVendors(data.vendors || []))
+      .catch(error => {
+        if (error.name !== 'AbortError') console.error(error);
+      });
+
+    return () => controller.abort();
+  }, [search, catFilter, statusFilter]);
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setServerErr(''); setModal(true); };
   const openEdit = (v: Vendor) => { setEditing(v); setForm({ name:v.name, company:v.company, email:v.email, phone:v.phone, gstNumber:v.gstNumber, category:v.category, address:v.address }); setErrors({}); setServerErr(''); setModal(true); };

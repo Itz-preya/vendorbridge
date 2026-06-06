@@ -31,7 +31,7 @@ async function main() {
   const v2 = await prisma.vendor.create({ data: { name: 'Kavita Singh', company: 'ManuPro Industries Ltd', email: 'kavita@manupro.co.in', phone: '+91 9123456780', gstNumber: '09AAACM2850K1Z4', category: 'MANUFACTURING', status: 'ACTIVE', address: 'B-12, Industrial Area, Sector 63, Noida - 201301' } });
   const v3 = await prisma.vendor.create({ data: { name: 'Mohan Das', company: 'BizConsult Advisory LLP', email: 'mohan@bizconsult.in', phone: '+91 9988776655', gstNumber: '29AABFB2553R1ZR', category: 'CONSULTING', status: 'ACTIVE', address: '3rd Floor, Prestige Tower, MG Road, Bengaluru - 560001' } });
   const v4 = await prisma.vendor.create({ data: { name: 'Deepak Nair', company: 'SwiftLog Carriers Pvt Ltd', email: 'deepak@swiftlog.in', phone: '+91 9745612380', gstNumber: '32AADCS5784Q1ZL', category: 'LOGISTICS', status: 'ACTIVE', address: 'NH 66 Bypass, Edapally, Kochi - 682024' } });
-  const v5 = await prisma.vendor.create({ data: { name: 'Ananya Reddy', company: 'PrimeMat Suppliers', email: 'ananya@primemat.in', phone: '+91 9966554433', gstNumber: '36AABCP7421R1ZT', category: 'RAW_MATERIALS', status: 'ACTIVE', address: 'Plot 7, APIIC Industrial Park, Hyderabad - 500081' } });
+  await prisma.vendor.create({ data: { name: 'Ananya Reddy', company: 'PrimeMat Suppliers', email: 'ananya@primemat.in', phone: '+91 9966554433', gstNumber: '36AABCP7421R1ZT', category: 'RAW_MATERIALS', status: 'ACTIVE', address: 'Plot 7, APIIC Industrial Park, Hyderabad - 500081' } });
   const v6 = await prisma.vendor.create({ data: { name: 'Rajesh Gupta', company: 'OfficeFirst Supplies', email: 'rajesh@officefirst.in', phone: '+91 9900112233', gstNumber: '24AAACG5678D1ZQ', category: 'OFFICE_SUPPLIES', status: 'INACTIVE', address: '15, Sardar Patel Marg, Ahmedabad - 380009' } });
 
   // ── RFQs ──
@@ -69,7 +69,7 @@ async function main() {
     },
   });
 
-  const rfq3 = await prisma.rFQ.create({
+  await prisma.rFQ.create({
     data: {
       rfqNumber: 'RFQ-2025-003',
       title: 'Warehouse Logistics & Transportation Services',
@@ -103,7 +103,7 @@ async function main() {
     },
   });
 
-  const q2 = await prisma.quotation.create({
+  await prisma.quotation.create({
     data: {
       quotationNumber: 'QTN-2025-002',
       rfqId: rfq1.id,

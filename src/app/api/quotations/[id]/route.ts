@@ -10,7 +10,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     const q = await prisma.quotation.findUnique({ where: { id }, include: { rfq: true, vendor: true, approvals: { include: { approver: { select: { name: true } } } } } });
     if (!q) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ quotation: q });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
