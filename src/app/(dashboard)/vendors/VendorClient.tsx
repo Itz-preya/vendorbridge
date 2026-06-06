@@ -11,8 +11,9 @@ const STATUS_BADGE: Record<string,string> = { ACTIVE:'badge-success', INACTIVE:'
 
 const emptyForm = { name:'', company:'', email:'', phone:'', gstNumber:'', category:'IT_SERVICES', address:'' };
 
-export default function VendorClient({ initial }: { initial: Vendor[] }) {
+export default function VendorClient({ initial, userRole }: { initial: Vendor[], userRole: string }) {
   const router = useRouter();
+  const canEdit = userRole === 'ADMIN' || userRole === 'PROCUREMENT_OFFICER';
   const [vendors, setVendors] = useState(initial);
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
@@ -91,7 +92,7 @@ export default function VendorClient({ initial }: { initial: Vendor[] }) {
           <option value="INACTIVE">Inactive</option>
           <option value="BLACKLISTED">Blacklisted</option>
         </select>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Vendor</button>
+        {canEdit && <button className="btn btn-primary" onClick={openAdd}>+ Add Vendor</button>}
       </div>
 
       {vendors.length === 0 ? (
@@ -99,7 +100,7 @@ export default function VendorClient({ initial }: { initial: Vendor[] }) {
           <div className="empty-state-icon">🏢</div>
           <div className="empty-state-title">No vendors found</div>
           <div className="empty-state-desc">Add your first vendor to get started</div>
-          <button className="btn btn-primary" onClick={openAdd}>+ Add Vendor</button>
+          {canEdit && <button className="btn btn-primary" onClick={openAdd}>+ Add Vendor</button>}
         </div>
       ) : (
         <div className="table-container">
@@ -128,10 +129,12 @@ export default function VendorClient({ initial }: { initial: Vendor[] }) {
                   <td><span className="badge badge-info">{CAT_LABELS[v.category]}</span></td>
                   <td><span className={`badge ${STATUS_BADGE[v.status] || 'badge-neutral'}`}>{v.status}</span></td>
                   <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={() => openEdit(v)}>✏️ Edit</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(v.id)} disabled={deleteId === v.id}>🗑</button>
-                    </div>
+                    {canEdit && (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(v)}>✏️ Edit</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(v.id)} disabled={deleteId === v.id}>🗑</button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
